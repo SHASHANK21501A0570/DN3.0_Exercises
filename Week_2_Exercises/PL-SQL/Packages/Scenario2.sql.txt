@@ -1,0 +1,68 @@
+CREATE OR REPLACE PACKAGE EmployeeManagement AS
+    PROCEDURE AddEmployee(
+        p_emp_id IN NUMBER, 
+        p_emp_name IN VARCHAR2, 
+        p_emp_position IN VARCHAR2, 
+        p_emp_salary IN NUMBER, 
+        p_emp_department IN VARCHAR2, 
+        p_emp_hire_date IN DATE
+    );
+    PROCEDURE ModifyEmployee(
+        p_emp_id IN NUMBER, 
+        p_emp_name IN VARCHAR2, 
+        p_emp_position IN VARCHAR2, 
+        p_emp_salary IN NUMBER, 
+        p_emp_department IN VARCHAR2
+    );
+    FUNCTION GetAnnualSalary(
+        p_emp_id IN NUMBER
+    ) RETURN NUMBER;
+END EmployeeManagement;
+/
+
+CREATE OR REPLACE PACKAGE BODY EmployeeManagement AS
+
+    PROCEDURE AddEmployee(
+        p_emp_id IN NUMBER, 
+        p_emp_name IN VARCHAR2, 
+        p_emp_position IN VARCHAR2, 
+        p_emp_salary IN NUMBER, 
+        p_emp_department IN VARCHAR2, 
+        p_emp_hire_date IN DATE
+    ) AS
+    BEGIN
+        INSERT INTO Employees (EmployeeID, Name, Position, Salary, Department, HireDate)
+        VALUES (p_emp_id, p_emp_name, p_emp_position, p_emp_salary, p_emp_department, p_emp_hire_date);
+        COMMIT;
+    END;
+
+    PROCEDURE ModifyEmployee(
+        p_emp_id IN NUMBER, 
+        p_emp_name IN VARCHAR2, 
+        p_emp_position IN VARCHAR2, 
+        p_emp_salary IN NUMBER, 
+        p_emp_department IN VARCHAR2
+    ) AS
+    BEGIN
+        UPDATE Employees
+        SET Name = p_emp_name, 
+            Position = p_emp_position, 
+            Salary = p_emp_salary, 
+            Department = p_emp_department
+        WHERE EmployeeID = p_emp_id;
+        COMMIT;
+    END;
+
+    FUNCTION GetAnnualSalary(
+        p_emp_id IN NUMBER
+    ) RETURN NUMBER AS
+        v_salary NUMBER;
+    BEGIN
+        SELECT Salary INTO v_salary 
+        FROM Employees 
+        WHERE EmployeeID = p_emp_id;
+        RETURN v_salary * 12;
+    END;
+
+END EmployeeManagement;
+/

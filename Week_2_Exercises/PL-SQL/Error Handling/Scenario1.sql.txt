@@ -1,0 +1,56 @@
+CREATE OR REPLACE PROCEDURE SafeTransferFunds (
+    p_from_account_id IN NUMBER,
+    p_to_account_id IN NUMBER,
+    p_amount IN NUMBER
+) IS
+  v_from_balance NUMBER;
+  v_to_balance NUMBER;
+BEGIN
+  -- Check if amount is valid
+  IF p_amount <= 0 THEN
+    RAISE_APPLICATION_ERROR(-20001, 'Transfer amount must be greater than zero.');
+  END IF;
+
+  -- Check the balance of the source account
+  SELECT Balance INTO v_from_balance
+  FROM Accounts
+  WHERE AccountID = p_from_account_id;
+  
+  -- Check if the source account has sufficient funds
+  IF v_from_balance < p_amount THEN
+    RAISE_APPLICATION_ERROR(-20002, 'Insufficient funds in the source account.');
+  END IF;
+
+  -- Retrieve the balance of the destination account
+  SELECT Balance INTO v_to_balance
+  FROM Accounts
+  WHERE AccountID = p_to_account_id;
+
+  -- Begin the transaction
+  BEGIN
+    -- Deduct amount from source account
+    UPDATE Accounts
+    SET Balance = Balance - p_amount
+    WHERE AccountID = p_from_account_id;
+
+    -- Add amount to destination account
+    UPDATE Accounts
+    SET Balance = Balance + p_amount
+    WHERE AccountID = p_to_account_id;
+
+    -- Commit the transaction
+    COMMIT;
+  EXCEPTION
+    WHEN OTHERS THEN
+      -- Rollback if any error occurs
+      ROLLBACK;
+      
+      -- Log the error message
+      INSERT INTO ErrorLog (ErrorMessage) 
+      VALUES ('Error during fund transfer: ' || SQLERRM);
+      
+      -- Raise the exception to notify the caller
+      RAISE;
+  END;
+END SafeTransferFunds;
+/

@@ -1,0 +1,8 @@
+DECLARE
+    v_dob DATE := TO_DATE('1985-05-15', 'YYYY-MM-DD');
+    v_age NUMBER;
+BEGIN
+    v_age := CalculateAge(v_dob);
+    DBMS_OUTPUT.PUT_LINE('Age: ' || v_age);
+END;
+/

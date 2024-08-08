@@ -1,0 +1,32 @@
+CREATE DEFINER=`root`@`localhost` PROCEDURE `UpdateEmployeeBonus`(
+    IN p_dept VARCHAR(255),
+    IN p_bonus_perc DECIMAL(5, 2)
+)
+BEGIN
+    DECLARE v_done INT DEFAULT FALSE;
+    DECLARE v_emp_id INT;
+    DECLARE v_current_salary DECIMAL(10, 2);
+    DECLARE cur CURSOR FOR 
+        SELECT EmployeeID, Salary 
+        FROM Employees 
+        WHERE Department = p_dept;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_done = TRUE;
+
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO v_emp_id, v_current_salary;
+        IF v_done THEN
+            LEAVE read_loop;
+        END IF;
+
+        SET v_current_salary = v_current_salary * (1 + p_bonus_perc / 100);
+
+        UPDATE Employees
+        SET Salary = v_current_salary
+        WHERE EmployeeID = v_emp_id;
+    END LOOP;
+
+    CLOSE cur;
+    COMMIT;
+END;

@@ -1,0 +1,39 @@
+DECLARE
+  CURSOR cur_cust IS
+    SELECT id, dob FROM cust;
+
+  cust_id cust.id%TYPE;
+  cust_dob cust.dob%TYPE;
+  age NUMBER;
+  cur_rate loans.rate%TYPE;
+  new_rate loans.rate%TYPE;
+
+BEGIN
+  FOR rec IN cur_cust LOOP
+    cust_id := rec.id;
+    cust_dob := rec.dob;
+    
+    -- Calculate age
+    age := FLOOR(MONTHS_BETWEEN(SYSDATE, cust_dob) / 12);
+    
+    IF age > 60 THEN
+      -- Get current interest rate
+      SELECT rate INTO cur_rate
+      FROM loans
+      WHERE cust_id = rec.id;
+      
+      -- Apply 1% discount
+      new_rate := cur_rate * 0.99;
+      
+      -- Update interest rate
+      UPDATE loans
+      SET rate = new_rate
+      WHERE cust_id = rec.id;
+    END IF;
+  END LOOP;
+  
+  -- Commit changes
+  COMMIT;
+  
+END;
+/

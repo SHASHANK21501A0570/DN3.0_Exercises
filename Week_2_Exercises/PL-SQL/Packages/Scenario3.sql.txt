@@ -1,0 +1,26 @@
+CREATE OR REPLACE PACKAGE AccountOperations AS
+PROCEDURE OpenAccount(p_id IN NUMBER, p_customer_id IN NUMBER, p_type IN VARCHAR2, p_balance IN NUMBER);
+PROCEDURE CloseAccount(p_id IN NUMBER);
+FUNCTION GetTotalBalance(p_customer_id IN NUMBER) RETURN NUMBER;
+END AccountOperations;
+/
+CREATE OR REPLACE PACKAGE BODY AccountOperations AS
+PROCEDURE OpenAccount(p_id IN NUMBER, p_customer_id IN NUMBER, p_type IN VARCHAR2, p_balance IN NUMBER) AS
+BEGIN
+INSERT INTO Accounts (AccountID, CustomerID, AccountType, Balance, LastModified)
+VALUES (p_id, p_customer_id, p_type, p_balance, SYSDATE);
+COMMIT;
+END;
+PROCEDURE CloseAccount(p_id IN NUMBER) AS
+BEGIN
+DELETE FROM Accounts WHERE AccountID = p_id;
+COMMIT;
+END;
+FUNCTION GetTotalBalance(p_customer_id IN NUMBER) RETURN NUMBER AS
+v_total_balance NUMBER;
+BEGIN
+SELECT SUM(Balance) INTO v_total_balance FROM Accounts WHERE CustomerID = p_customer_id;
+RETURN v_total_balance;
+END;
+END AccountOperations;
+/

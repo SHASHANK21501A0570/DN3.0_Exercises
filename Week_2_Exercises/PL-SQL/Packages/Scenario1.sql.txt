@@ -1,0 +1,62 @@
+CREATE OR REPLACE PACKAGE CustomerManagement AS
+    PROCEDURE AddCustomer(
+        p_customer_id IN NUMBER, 
+        p_customer_name IN VARCHAR2, 
+        p_customer_dob IN DATE, 
+        p_initial_balance IN NUMBER
+    );
+    PROCEDURE UpdateCustomer(
+        p_customer_id IN NUMBER, 
+        p_customer_name IN VARCHAR2, 
+        p_customer_dob IN DATE, 
+        p_new_balance IN NUMBER
+    );
+    FUNCTION GetCustomerBalance(
+        p_customer_id IN NUMBER
+    ) RETURN NUMBER;
+END CustomerManagement;
+/
+
+CREATE OR REPLACE PACKAGE BODY CustomerManagement AS
+
+    PROCEDURE AddCustomer(
+        p_customer_id IN NUMBER, 
+        p_customer_name IN VARCHAR2, 
+        p_customer_dob IN DATE, 
+        p_initial_balance IN NUMBER
+    ) AS
+    BEGIN
+        INSERT INTO Customers (CustomerID, Name, DOB, Balance, LastModified)
+        VALUES (p_customer_id, p_customer_name, p_customer_dob, p_initial_balance, SYSDATE);
+        COMMIT;
+    END;
+
+    PROCEDURE UpdateCustomer(
+        p_customer_id IN NUMBER, 
+        p_customer_name IN VARCHAR2, 
+        p_customer_dob IN DATE, 
+        p_new_balance IN NUMBER
+    ) AS
+    BEGIN
+        UPDATE Customers
+        SET Name = p_customer_name, 
+            DOB = p_customer_dob, 
+            Balance = p_new_balance, 
+            LastModified = SYSDATE
+        WHERE CustomerID = p_customer_id;
+        COMMIT;
+    END;
+
+    FUNCTION GetCustomerBalance(
+        p_customer_id IN NUMBER
+    ) RETURN NUMBER AS
+        v_current_balance NUMBER;
+    BEGIN
+        SELECT Balance INTO v_current_balance 
+        FROM Customers 
+        WHERE CustomerID = p_customer_id;
+        RETURN v_current_balance;
+    END;
+
+END CustomerManagement;
+/

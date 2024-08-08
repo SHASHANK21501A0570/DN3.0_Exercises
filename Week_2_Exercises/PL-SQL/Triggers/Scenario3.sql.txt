@@ -1,0 +1,32 @@
+CREATE OR REPLACE TRIGGER CheckTransactionRules
+BEFORE INSERT ON Transactions
+FOR EACH ROW
+DECLARE
+    v_balance Accounts.Balance%TYPE;
+BEGIN
+        SELECT Balance INTO v_balance
+    FROM Accounts
+    WHERE AccountID = :NEW.AccountID
+    FOR UPDATE;
+
+        IF :NEW.TransactionType = 'Withdrawal' THEN
+                IF :NEW.Amount > v_balance THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Insufficient balance for withdrawal.');
+        END IF;
+                UPDATE Accounts
+        SET Balance = Balance - :NEW.Amount
+        WHERE AccountID = :NEW.AccountID;
+
+        ELSIF :NEW.TransactionType = 'Deposit' THEN
+               IF :NEW.Amount <= 0 THEN
+            RAISE_APPLICATION_ERROR(-20002, 'Deposit amount must be positive.');
+        END IF;
+               UPDATE Accounts
+        SET Balance = Balance + :NEW.Amount
+        WHERE AccountID = :NEW.AccountID;
+
+    ELSE
+        RAISE_APPLICATION_ERROR(-20003, 'Invalid transaction type.');
+    END IF;
+END;
+/
